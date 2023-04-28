@@ -39,7 +39,7 @@ class User extends Authenticatable
      * @var array<string, string>
      */
 
-    public function eventSprotifs(){
+    public function eventSportifs(){
         return $this->hasMany(EventSportif::class);
     }
     protected $casts = [

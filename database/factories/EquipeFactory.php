@@ -17,7 +17,8 @@ class EquipeFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'nom' =>$this->faker->company(),
+            'logo' => $this->faker->imageUrl(360, 360, true),
         ];
     }
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -17,7 +16,8 @@ class CommentaireFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'body' => $this->faker->words(3,true),
+            'dateAjout' =>now()
         ];
     }
 }

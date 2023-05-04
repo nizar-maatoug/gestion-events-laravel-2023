@@ -12,5 +12,5 @@
 
         @endforeach
     </div>
-    {{ $users->links() }}
+    {{ $eventSportifs->links() }}
 </div>

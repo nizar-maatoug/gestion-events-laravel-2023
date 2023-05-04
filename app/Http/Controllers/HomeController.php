@@ -12,7 +12,7 @@ class HomeController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $eventSprotifs=EventSportif::all();
+        $eventSprotifs=EventSportif::paginate(2);
         $data=[
             'title' => 'Evènements Sportifs',
             'description' => 'Liste des évènements sportifs',

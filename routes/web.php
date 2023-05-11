@@ -3,8 +3,9 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\{
-    HomeController
-};
+    HomeController,
+    EventSportifController
+    };
 
 /*
 |--------------------------------------------------------------------------
@@ -18,3 +19,6 @@ use App\Http\Controllers\{
 */
 
 Route::get('/',HomeController::class)->name('home');
+
+Route::resource('/eventSportifs',EventSportifController::class);
+

@@ -8,6 +8,9 @@
                     <p class="card-text">{{$eventSportif->description}}</p>
 {{--                    <a href="{{route('events.show',[$eventSportif])}}" class="btn btn-primary">Détails</a>--}}
                 </div>
+                <div class="card-footer">
+                    <a href="{{route('eventSportifs.show',[$eventSportif])}}" class="btn btn-primary">Détails</a>
+                </div>
             </div>
 
         @endforeach

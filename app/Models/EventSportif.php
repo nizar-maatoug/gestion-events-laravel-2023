@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class EventSportif extends Model
 {
     use HasFactory;
+    protected $guarded=[];
 
     public function organisateur(){
-        $this->belongsTo(User::class,'user_id');
+        return $this->belongsTo(User::class,'user_id');
     }
 
     public function categories(){

@@ -7,6 +7,8 @@ use App\Models\EventSportif;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 
 class EventSportifController extends Controller
@@ -46,18 +48,19 @@ class EventSportifController extends Controller
      */
     public function store(EventSportifRequest $request)
     {
+
         DB::beginTransaction();
         try{
             $validated = $request->validated();
             $poster=null;
-            $urlPoster=null;
+            $posterURL=null;
 
             if(($request->file('poster')!==null)&&($request->file('poster')->isValid())){
 
                 $ext=$request->file('poster')->extension();
                 $fileName=Str::uuid().'.'.$ext;
                 $poster=$request->file('poster')->storeAs('public/images',$fileName);
-                $urlPoster=env('APP_URL').Storage::url($poster);
+                $posterURL=env('APP_URL').Storage::url($poster);
             }
 
             Auth::user()->eventSportifs()->create([
@@ -65,7 +68,7 @@ class EventSportifController extends Controller
                 'description' => $validated['description'],
                 'lieu' => $validated['lieu'],
                 'poster' => $poster,
-                'urlPoster' => $urlPoster,
+                'posterURL' => $posterURL,
                 'dateDebut' => $validated['dateDebut'],
                 'dateFin' => $validated['dateFin']
             ]);
@@ -98,15 +101,66 @@ class EventSportifController extends Controller
      */
     public function edit(EventSportif $eventSportif)
     {
-        //
+        abort_if(auth()->user()->id !== $eventSportif->organisateur->id,403 );
+
+        $data=[
+            'title' => $description="Editer évenement Sportif ".$eventSportif->nom,
+            'description' => $description,
+            'heading' => $description,
+            'eventSportif' =>$eventSportif
+        ];
+        return view('events.edit',$data);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EventSportif $eventSportif)
+    public function update(EventSportifRequest $request, EventSportif $eventSportif)
     {
-        //
+        abort_if($eventSportif->organisateur->id !== auth()->id(),403);
+
+        DB::beginTransaction();
+        try{
+            $validated = $request->validated();
+
+            $poster=$eventSportif->poster;
+            $posterURL=$eventSportif->posterURL;
+
+            if(($request->file('poster')!==null)&&($request->file('poster')->isValid())){
+
+                $ext=$request->file('poster')->extension();
+                $fileName=Str::uuid().'.'.$ext;
+                $poster=$request->file('poster')->storeAs('public/images',$fileName);
+                $urlPoster=env('APP_URL').Storage::url($poster);
+
+
+
+                //Supprimer l'ancien poster s'il existe
+                DB::afterCommit(function() use($eventSportif){
+                    if($eventSportif->poster!=null){
+                        Storage::delete($eventSportif->poster);
+                    }
+
+                });
+
+            }
+            Auth::user()->eventSportifs()->where('id',$eventSportif->id)->update([
+                'nom'=> $validated['nom'],
+                'description' => $validated['description'],
+                'lieu' => $validated['lieu'],
+                'poster' => $poster,
+                'posterURL' => $urlPoster,
+                'dateDebut' => $validated['dateDebut'],
+                'dateFin' => $validated['dateFin']
+            ]);
+
+        }catch(ValidationException $exception){
+            DB::rollback();
+        }
+        DB::commit();
+
+        return redirect()->route('eventSportifs.show',[$eventSportif]);
+
     }
 
     /**
@@ -114,6 +168,25 @@ class EventSportifController extends Controller
      */
     public function destroy(EventSportif $eventSportif)
     {
-        //
+        abort_if($eventSportif->organisateur->id !== auth()->id(),403);
+
+        DB::beginTransaction();
+        try{
+            DB::afterCommit(function() use($eventSportif){
+
+                if($eventSportif->poster!=null){
+                    Storage::delete($eventSportif->poster);
+                }
+
+            });
+
+            $eventSportif->delete();
+
+        }catch(ValidationException $e){
+            DB::rollback();
+        }
+        DB::commit();
+
+        return redirect()->route('eventSportifs.index');
     }
 }

@@ -13,6 +13,12 @@ use Illuminate\Support\Str;
 
 class EventSportifController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(EventSportif::class, 'eventSportif');
+    }
+
+
     /**
      * Display a listing of the resource.
      */
@@ -48,7 +54,6 @@ class EventSportifController extends Controller
      */
     public function store(EventSportifRequest $request)
     {
-
         DB::beginTransaction();
         try{
             $validated = $request->validated();

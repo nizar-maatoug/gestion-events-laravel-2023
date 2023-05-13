@@ -4,7 +4,8 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\{
     HomeController,
-    EventSportifController
+    EventSportifController,
+    AdminDashboardController
     };
 
 /*
@@ -20,5 +21,17 @@ use App\Http\Controllers\{
 
 Route::get('/',HomeController::class)->name('home');
 
-Route::resource('/eventSportifs',EventSportifController::class);
+Route::prefix('organisateur')->middleware(['auth','can:organisateur-view'])->group(function (){
+
+    Route::resource('/eventSportifs',EventSportifController::class);
+});
+
+Route::prefix('admin')->middleware(['auth','can:admin-view'])->group(function (){
+
+    Route::get('/users',[AdminDashboardController::class,'userDashboard'])->name('admin.users');
+    Route::get('/events',[AdminDashboardController::class, 'eventDashboard'])->name('admin.events');
+
+});
+
+
 

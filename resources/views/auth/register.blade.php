@@ -38,6 +38,20 @@
                                 @enderror
                             </div>
                         </div>
+                        <div class="row mb-3 mt-4">
+                            <label for="role" class="col-md-4 col-form-label text-md-end">Role </label>
+                            <div class="col-md-6">
+                                <select id="role" name="role" class="form-select" aria-label="Default select example" required>
+                                    <option selected value="Organisateur">Orgnisateur</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                                @error('role')
+                                <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
 
                         <div class="row mb-3">
                             <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>

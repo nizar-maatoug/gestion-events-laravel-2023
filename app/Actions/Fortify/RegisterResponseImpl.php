@@ -16,7 +16,7 @@ class RegisterResponseImpl implements RegisterResponse
             return redirect()->route('admin');
         }
         else{
-            return redirect()->route('visitor');
+            return redirect()->route('home');
         }
 
     }

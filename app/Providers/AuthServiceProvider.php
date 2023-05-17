@@ -17,6 +17,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
+        //Pour le modèle EventSprotif appliquer la stratégie EventSportifPolicy
         EventSportif::class => EventSportifPolicy::class,
     ];
 
@@ -24,10 +25,12 @@ class AuthServiceProvider extends ServiceProvider
      * Register any authentication / authorization services.
      */
     public function boot(): void
-    {
+    {//portes
+
         Gate::define('admin-view',function (User $user){
             return $user->role=='Admin';
         });
+
         Gate::define('organisateur-view',function (User $user){
             return $user->role=='Organisateur';
         });

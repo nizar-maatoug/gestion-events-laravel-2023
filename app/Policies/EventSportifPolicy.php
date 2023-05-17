@@ -45,7 +45,7 @@ class EventSportifPolicy
      */
     public function delete(User $user, EventSportif $eventSportif): bool
     {
-        return $user->role=="Organisateur";
+        return (($user->role=="Organisateur")&&($user->id==$eventSportif->user_id));
     }
 
     /**

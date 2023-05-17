@@ -17,7 +17,7 @@ class LoginResponseImpl implements LoginResponse
             return redirect()->route('admin.events');
         }
         else{
-            return redirect()->route('visitor');
+            return redirect()->route('home');
         }
     }
 }

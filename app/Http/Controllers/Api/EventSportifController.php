@@ -1,52 +1,31 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\EventSportifRequest;
+use App\Http\Resources\EventSportifResource;
 use App\Models\EventSportif;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-
+use Symfony\Component\HttpFoundation\Response;
 
 class EventSportifController extends Controller
 {
+
     public function __construct()
     {
         $this->authorizeResource(EventSportif::class, 'eventSportif');
     }
-
-
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $eventSportifs=auth()->user()->eventSportifs()->paginate();
-        $data=[
-            'title' => $description="Mes évènements sportifs",
-            'description' => $description,
-            'eventSportifs' => $eventSportifs,
+        return EventSportifResource::collection(EventSportif::paginate(2));
 
-            'heading' => $description
-        ];
-        return view('events.mes-events',$data);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $data=[
-            'title' => $description="ajouter nouvel evenement",
-            'description' => $description,
-
-            'heading' => $description
-        ];
-        return view('events.create',$data);
     }
 
     /**
@@ -54,6 +33,8 @@ class EventSportifController extends Controller
      */
     public function store(EventSportifRequest $request)
     {
+         $user=User::find(1);
+
         DB::beginTransaction();
         try{
             $validated = $request->validated();
@@ -68,7 +49,7 @@ class EventSportifController extends Controller
                 $posterURL=env('APP_URL').Storage::url($poster);
             }
 
-            Auth::user()->eventSportifs()->create([
+            $eventSportif=Auth::user()->eventSportifs()->create([
                 'nom'=> $validated['nom'],
                 'description' => $validated['description'],
                 'lieu' => $validated['lieu'],
@@ -84,45 +65,24 @@ class EventSportifController extends Controller
 
         DB::commit();
 
-        return redirect()->route('eventSportifs.index');
+        return response(new EventSportifResource($eventSportif), Response::HTTP_CREATED);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(EventSportif $eventSportif)
+    public function show(string $id)
     {
-        $data=[
-            'title' => 'Evènnement sportif: '.$eventSportif->nom,
-            'description' => 'Détails event: '.$eventSportif->nom,
-            'heading' => config('app.name'),
-            'eventSportif' => $eventSportif
-        ];
-        return view('events.details-event', $data);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(EventSportif $eventSportif)
-    {
-        abort_if(auth()->user()->id !== $eventSportif->organisateur->id,403 );
-
-        $data=[
-            'title' => $description="Editer évenement Sportif ".$eventSportif->nom,
-            'description' => $description,
-            'heading' => $description,
-            'eventSportif' =>$eventSportif
-        ];
-        return view('events.edit',$data);
+        return new EventSportifResource(EventSportif::with('categories')->find($id));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(EventSportifRequest $request, EventSportif $eventSportif)
+    public function update(EventSportifRequest $request, string $id)
     {
-        abort_if($eventSportif->organisateur->id !== auth()->id(),403);
+
+        $eventSportif=EventSportif::find($id);
 
         DB::beginTransaction();
         try{
@@ -138,8 +98,6 @@ class EventSportifController extends Controller
                 $poster=$request->file('poster')->storeAs('public/images',$fileName);
                 $urlPoster=env('APP_URL').Storage::url($poster);
 
-
-
                 //Supprimer l'ancien poster s'il existe
                 DB::afterCommit(function() use($eventSportif){
                     if($eventSportif->poster!=null){
@@ -149,7 +107,7 @@ class EventSportifController extends Controller
                 });
 
             }
-            Auth::user()->eventSportifs()->where('id',$eventSportif->id)->update([
+            $eventSportifUpdated=Auth::user()->eventSportifs()->where('id',$eventSportif->id)->update([
                 'nom'=> $validated['nom'],
                 'description' => $validated['description'],
                 'lieu' => $validated['lieu'],
@@ -164,16 +122,15 @@ class EventSportifController extends Controller
         }
         DB::commit();
 
-        return redirect()->route('eventSportifs.show',[$eventSportif]);
-
+        return response(new EventSportifResource($eventSportifUpdated),Response::HTTP_ACCEPTED);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EventSportif $eventSportif)
+    public function destroy(string $id)
     {
-        abort_if($eventSportif->organisateur->id !== auth()->id(),403);
+        $eventSportif=EventSportif::find($id);
 
         DB::beginTransaction();
         try{
@@ -191,7 +148,6 @@ class EventSportifController extends Controller
             DB::rollback();
         }
         DB::commit();
-
-        return redirect()->route('eventSportifs.index');
+        return response(null,Response::HTTP_NO_CONTENT);
     }
 }
